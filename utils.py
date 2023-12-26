@@ -59,3 +59,25 @@ def eq_5d(lq_1eql, lq_2eql, lq_3eql, lq_4eql, lq_5eql):
                   0.043 * ad2 + 0.158 * ad3 + 0.05 * n3)
 
     return result
+
+
+def manage_outlier(df, col, remove=True, extreme=False):
+    import numpy as np
+    Q1 = np.quantile(df[col], .25)
+    Q3 = np.quantile(df[col], .75)
+    IQR = Q3 - Q1
+    if extreme:
+        maximum = Q3 + (3 * IQR)
+        minimum = Q1 - (3 * IQR)
+    else:
+        maximum = Q3 + (1.5 * IQR)
+        minimum = Q1 - (1.5 * IQR)
+
+    if remove:
+        drop_idx = df[np.logical_or(df[col] > maximum, df[col] < minimum)].index
+        print(f'{len(drop_idx)}개 삭제')
+        df.drop(index=drop_idx, inplace=True)
+        df = df.reset_index().drop('index', axis=1)
+    else:
+        df.loc[df[col]>maximum, col] = maximum
+        df.loc[df[col]<minimum, col] = minimum
